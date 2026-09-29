@@ -1,0 +1,12 @@
+{
+  // Exercise 02: JSON と env
+  // vars は平文の設定値。secret はここに書かず `wrangler secret put` を使う。
+  "name": "hello-cloudflare-py-02",
+  "main": "src/entry.py",
+  "compatibility_date": "2026-09-29",
+  "compatibility_flags": ["python_workers"],
+  "vars": {
+    "GREETING": "こんにちは",
+    "API_HOST": "example.com"
+  }
+}

@@ -1,0 +1,9 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "hello-cloudflare-py",
+	"main": "exercises/06_packages/worker.py",
+	"compatibility_flags": [
+		"python_workers"
+	],
+	"compatibility_date": "2026-09-29"
+}
