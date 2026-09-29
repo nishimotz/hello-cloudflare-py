@@ -83,6 +83,166 @@ uv run pywrangler deploy                # デプロイ
 このリポジトリは `init` の生成物を手で整えた形。各 exercise は
 `src/entry.py`（Worker 本体）と `wrangler.jsonc`（設定）を持つ。
 
+## デプロイ
+
+ローカルで動いた Worker を Cloudflare のネットワークに公開する。
+CLI は **wrangler**（現行）と **cf**（後継。2026-09 発表）の2通りを併記する。
+
+### 前提
+
+- **Cloudflare アカウント**（無料で作成できる）
+- Node.js（`wrangler` は 20 以上、`cf` は 22 以上）
+
+### ログイン
+
+**wrangler（現行）:**
+
+```bash
+npx wrangler login     # ブラウザが開き、OAuth で認可
+npx wrangler whoami    # 確認
+```
+
+**cf（後継）:**
+
+```bash
+npm i -g cf            # インストール（Node.js 22+）
+cf auth login          # デフォルトプロファイルでログイン
+cf auth whoami         # 確認
+cf auth create work    # 名前付きプロファイルを使う場合
+cf auth activate work
+```
+
+### デプロイする
+
+**wrangler（現行）:**
+
+```bash
+uv run pywrangler deploy
+```
+
+`pywrangler` が `pyproject.toml` の依存をバンドルし、設定を整えてから、
+内部で `npx wrangler deploy` に委譲する。
+
+**cf（後継）:**
+
+```bash
+cf migrate wrangler.jsonc   # 既存の wrangler 設定から cloudflare.config.ts を生成
+cf deploy                   # cloudflare.config.ts を読んでビルド・デプロイ
+```
+
+`cf migrate` は wrangler の設定ファイルを引数に取り、`cloudflare.config.ts`
+（TypeScript 形式）を生成する。`--dry-run` で変更予定だけ確認できる。
+
+やること:
+
+1. `src/entry.py` をビルドし、依存パッケージをバンドルする
+2. WASM（Pyodide）のブートストラップを実行し、線形メモリのスナップショットを作る
+3. `wrangler.jsonc` / `cloudflare.config.ts` の `name` で Worker をアップロードする
+4. ルート（`<name>.<account>.workers.dev`）を割り当てる
+
+スナップショットの仕組みは Exercise 04 を参照。
+
+### 動作確認
+
+```bash
+curl https://<name>.<account>.workers.dev/
+```
+
+`<name>` は設定ファイルの `name`。`<account>` は `whoami` のアカウントサブドメイン。
+
+### secret を設定する
+
+コード・設定に書かず、CLI から登録する（Exercise 02 を参照）:
+
+**wrangler（現行）:**
+
+```bash
+npx wrangler secret put API_TOKEN
+```
+
+**cf（後継）:**
+
+```bash
+cf workers secrets update API_TOKEN     # 新しいバージョンとして secret を登録
+cf workers secrets list                 # 登録済み secret の一覧
+cf workers secrets get API_TOKEN        # 値の確認
+cf workers secrets delete API_TOKEN     # 削除
+```
+
+`cf workers secrets` の動詞は `update`（旧 `put` に相当）。`--worker` で対象
+Worker を明示する。複数を一度に変えるときは `cf workers secrets bulk` を使う。
+
+### ログを見る
+
+**wrangler（現行）:**
+
+```bash
+npx wrangler tail
+```
+
+**cf（後継）:** `cf workers` に wrangler `tail` に相当するコマンドは確認できな
+かった。`cf logs query`（Logpush ベース）、`cf builds logs get` などが近いが、
+実行ログのライブストリームとしては未確認。
+
+本番の Worker に届いたリクエストと出力がストリーム表示される。
+
+### 消す
+
+**wrangler（現行）:**
+
+```bash
+npx wrangler delete
+```
+
+**cf（後継）:**
+
+```bash
+cf workers delete <worker-id>   # worker-id を明示する
+```
+
+wrangler の `delete` は設定ファイルから名前を解決するが、`cf workers delete` は
+**worker-id を引数に取る**。`cf workers list` で ID を確認する。
+
+設定ファイルの `name` の Worker を削除する。動作確認が済んだら残さない。
+
+### 補足
+
+- Cloudflare は 2026-09 に **`cf`**（全 API を覆う統合 CLI）を発表した。
+  **wrangler は 18 ヶ月の猶予期間で維持**され、新規は `cf` が推奨される
+- 設定ファイルは `wrangler.jsonc`（JSONC）から **`cloudflare.config.ts`
+  （TypeScript）** に移る。移行は `cf migrate` が補助する
+- `cf` は `cf cli search "…"` でコマンドを検索できる（結果は JSON）。
+  3,000 以上のサブコマンドがあるため、目的のコマンドを見つけるのに便利
+- 本ページの `cf` コマンドは **cf v1.0.0-beta.5 の `--help` で確認**した範囲。
+  ベータ版なので体系は変わりうる
+- 主経路（`dev` / `deploy`）は **`pywrangler`** 経由に統一している。
+  `pywrangler` は wrangler のラッパーなので、`cf` 移行の影響を受けにくいが、
+  `pywrangler` が `cf` に追随するかは別途確認が要る
+- Python Workers は初期段階の機能で、対応パッケージや API の範囲は変化する
+  （Exercise 06 を参照）
+- 無料プランでも Workers は使える。課金・上限は Cloudflare のダッシュボードで確認する
+
+### デプロイ先の選択肢
+
+同じ Flask アプリを「書き換えずに載せる」という観点で比較すると、次のようになる。
+
+| | Cloudflare Workers | AWS Lambda + Zappa | AWS Lambda + Chalice |
+|---|---|---|---|
+| 既存 Flask の修正 | **1行**（`entrypoint(app)`） | `zappa_settings.json` のみ | **書き直しが要る** |
+| 実行環境 | Pyodide（WASM） | 実 CPython | 実 CPython |
+| C 拡張 | 原則不可（PyEmscripten 要） | 可 | 可 |
+| 設定 | `wrangler.jsonc` / `cloudflare.config.ts` | `zappa_settings.json` | `.chalice/config.json` |
+| 課金 | リクエスト + CPU（無料枠あり） | Lambda + API Gateway | Lambda + API Gateway |
+| エッジ | **グローバル** | リージョン | リージョン |
+
+- **Zappa** は「既存 WSGI アプリを変えずに Lambda へ」載せる道具。
+  Exercise 07 の Workers × Flask と**同型の体験**になる
+- **Chalice** は AWS の作法で書く道具。Flask を**そのまま載せるものではない**
+  （この違いが比較の勘所）
+- ASGI（FastAPI / Starlette）を Lambda に載せるなら **Mangum** が定番
+- Cloudflare 内で WASM の制約を避けたい場合は **Containers**
+  （`cf containers --help`）という選択肢もある
+
 ## 検証状況
 
 **正直な記録。** この環境で実際に確認できたこと / できないことを分けて書く。
