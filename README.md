@@ -247,20 +247,32 @@ wrangler の `delete` は設定ファイルから名前を解決するが、`cf 
 
 ## 検証状況
 
-**正直な記録。** この環境で実際に確認できたこと / できないことを分けて書く。
+**正直な記録。** 執筆時の検証環境（macOS 上の uv + Node.js）で実際に確認できたこと / できないことを分けて書く。
 
 | 項目 | 状態 |
 |------|------|
-| `pywrangler` の入手・起動 (`uvx --from workers-py pywrangler --help`) | 確認済み（このマシン） |
+| `pywrangler` の入手・起動 (`uvx --from workers-py pywrangler --help`) | 確認済み（執筆時の検証環境） |
 | Exercise 00〜06 の `src/*.py` の構文（`make check`） | 確認済み |
-| `uv run pywrangler dev` の実起動と `curl` 疎通 | **確認済み（04〜06、担当B）**（pywrangler 1.17.4 / wrangler 4.143.0 / Pyodide 3.14.2） |
+| `uv run pywrangler dev` の実起動と `curl` 疎通 | **確認済み（04〜06）**（pywrangler 1.17.4 / wrangler 4.143.0 / Pyodide 3.14.2） |
 | Exercise 07 の `pywrangler dev` と `curl` 疎通（8項目） | **確認済み**（Flask 3.1.3 / Jinja2 3.1.6 / wrangler 4.143.0） |
 | `uv run pywrangler deploy` | 未検証（remote を作らない方針のため） |
 
-**04〜06 の実測記録**は `VERIFICATION.md` に残す。**07 の実測は
-`exercises/07_flask_wsgi/README.md` に残す**（8項目の応答を記録）。公式ドキュメントの除外リストに
+**検証方法**: 検証時は exercise ごとに最小構成のフィクスチャ（`pyproject.toml` + `wrangler.jsonc`）を
+用意し、`worker.py` を `main` に向けて `uv run pywrangler dev` で起動して `curl` した。
+各 exercise で起動する場合は `make dev-04` 〜 `dev-07` を使う。
+
+**実測記録は各 exercise の README に置く。** 04〜06 は
+`exercises/04_wasm/README.md` / `05_stdlib` / `06_packages`、07 は
+`exercises/07_flask_wsgi/README.md`（8項目の応答）。公式ドキュメントの除外リストに
 ある `fcntl` / `termios` / `pty` / `tty` が `find_spec` で「見つかる」という
-食い違いも記録した（実使用は未検証。断定しない）。
+食い違いも 05 に記録した（実使用は未検証。断定しない）。
+
+**実測できていないもの**:
+
+- **デプロイ時のスナップショット**（WASM 線形メモリ保存）は未実測。デプロイ時にのみ発生するため、
+  Exercise 04 の説明はドキュメントに基づく
+- **`multiprocessing` / `threading` の「機能しない」挙動の詳細**は未検証。import が成功することだけ確認
+- **`fcntl` / `termios` / `pty` / `tty` の実使用可否**は未検証。OS syscall 依存で、実行時に失敗する可能性が高い
 
 `workers` SDK は Workers runtime が提供する。ローカルの venv には入らないため、
 `make check` は **import ではなく構文だけ** を見る。

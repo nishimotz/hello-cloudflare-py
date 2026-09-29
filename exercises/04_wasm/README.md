@@ -91,7 +91,8 @@
 ## 自分で確かめるなら
 
 この回は座学。手を動かしたい場合は Exercise 00〜03 の Worker に対して
-以下を試す（**要 `pywrangler dev`**。このマシンでは未検証、後述）:
+以下を試す（**要 `pywrangler dev`**。この3つは未検証。
+本 exercise の Worker 版での実測は後述）:
 
 - `compatibility_date` を変えて、`platform.python_version()` が変わるか見る
 - トップレベルで `print(...)` して、`dev` のログにいつ出るか観察する

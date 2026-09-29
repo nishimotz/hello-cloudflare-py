@@ -2,14 +2,15 @@
 
 このファイルは2つの役割を持つ:
 
-1. このマシンで普通の CPython として実行できる「座学の確認問題」を出す。
+1. 手元の普通の CPython として実行できる「座学の確認問題」を出す。
    実行環境（CPython / Pyodide）の違いを、観察可能な事実として並べる。
    `python exercises/04_wasm/wasm_demo.py` で動く。
 
 2. Cloudflare Workers 上で同じ観察を行うための WorkerEntrypoint。
    JS の Request を FFI 経由で読み、Pyodide/WASM の情報を JSON で返す。
    `uv run pywrangler dev` で起動して GET / を叩くと確認できる。
-   （このマシンでは pywrangler を起動していないため未検証。README 参照）
+   （このファイルを Worker として起動した検証は未実施。同じ観察は
+   `worker.py` で行っており、実測は README の「実測記録」にある）
 
 実行モデルやデプロイ時のスナップショットの説明は README.md を読むこと。
 """
@@ -86,7 +87,7 @@ def main() -> None:
     print()
 
     print("[2] WASM が制約するモジュールの観察")
-    print("    (この環境の結果。Pyodide 上では not found / 除外になる)")
+    print("    (ローカル CPython の結果。Pyodide 上では not found / 除外になる)")
     for name, result in detect_wasm_limits().items():
         print(f"    {name:16} : {result}")
     print()

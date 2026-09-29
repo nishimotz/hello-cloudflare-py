@@ -10,7 +10,7 @@ ENTRIES := \
 	exercises/02_json_env/src/entry.py \
 	exercises/03_routing/src/entry.py
 
-# Exercise 04〜06 は担当Bの成果物。存在するものだけを対象にする。
+# Exercise 04〜06 も対象。存在するものだけを対象にする。
 EXTRA_PY := $(wildcard exercises/04_wasm/*.py exercises/05_stdlib/*.py exercises/06_packages/*.py)
 
 .PHONY: help sync check lint \
