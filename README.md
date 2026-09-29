@@ -148,7 +148,8 @@ cf deploy                   # cloudflare.config.ts を読んでビルド・デ�
 curl https://<name>.<account>.workers.dev/
 ```
 
-`<name>` は設定ファイルの `name`。`<account>` は `whoami` のアカウントサブドメイン。
+`<name>` は設定ファイルの `name`。`<account>` は `npx wrangler whoami` の出力や
+Cloudflare ダッシュボードで確認する。
 
 ### secret を設定する
 
