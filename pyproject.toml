@@ -4,7 +4,10 @@ version = "0.1.0"
 description = "Cloudflare Workers を Python で書くための日本語ハンズオン"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+# Exercise 07（Flask + Jinja2）で使う。pure Python のみで C 拡張が無いため WASM で動く。
+dependencies = [
+    "flask>=3.1",
+]
 
 [dependency-groups]
 dev = [

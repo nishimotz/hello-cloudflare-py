@@ -28,6 +28,7 @@ Pyodide・V8 isolate・デプロイ時のスナップショットという仕組
 | `04_wasm` | なぜ動くのか。CPython→WASM、V8 isolate、スナップショット、制約の理由 | 座学＋任意で実機 |
 | `05_stdlib` | 標準ライブラリの使える / 使えない、インメモリ FS の実験 | 座学＋実験 |
 | `06_packages` | `pyproject.toml` に依存を追加（pure Python パッケージ） | 実行 |
+| `07_flask_wsgi` | Flask + Jinja2 を `workers.wsgi.entrypoint` で載せる | 実行 |
 
 ## クイックスタート
 

@@ -1,7 +1,7 @@
 {
 	"$schema": "./node_modules/wrangler/config-schema.json",
 	"name": "hello-cloudflare-py",
-	"main": "exercises/06_packages/worker.py",
+	"main": "exercises/07_flask_wsgi/src/entry.py",
 	"compatibility_flags": [
 		"python_workers"
 	],

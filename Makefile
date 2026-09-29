@@ -16,7 +16,7 @@ EXTRA_PY := $(wildcard exercises/04_wasm/*.py exercises/05_stdlib/*.py exercises
 .PHONY: help sync check lint \
 	run-00 run-01 run-02 run-03 run-04 run-06 \
 	demo-04 demo-06 \
-	dev-00 dev-01 dev-02 dev-03 dev-04 dev-05 dev-06
+	dev-00 dev-01 dev-02 dev-03 dev-04 dev-05 dev-06 dev-07
 
 help:
 	@printf '%s\n' \
@@ -30,6 +30,7 @@ help:
 		'make dev-04      - Exercise 04: start pywrangler dev (WASM / Pyodide)' \
 		'make dev-05      - Exercise 05: start pywrangler dev (stdlib constraints)' \
 		'make dev-06      - Exercise 06: start pywrangler dev (packages)' \
+		'make dev-07      - Exercise 07: start pywrangler dev (Flask + Jinja2 via WSGI)' \
 		'make demo-04     - Exercise 04: CPython stand-alone demo (no pywrangler)' \
 		'make demo-06     - Exercise 06: CPython stand-alone demo (no pywrangler)' \
 		'' \
@@ -77,3 +78,6 @@ dev-05:
 
 dev-06:
 	cd exercises/06_packages && $(UV) run pywrangler dev
+
+dev-07:
+	cd exercises/07_flask_wsgi && $(UV) run pywrangler dev
