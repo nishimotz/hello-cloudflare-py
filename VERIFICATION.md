@@ -5,7 +5,7 @@
 ## できたこと
 
 `uv run pywrangler dev` で **実際に Worker を起動して HTTP 応答を確認した**。
-フィクスチャ（`/tmp/cfpy-e6`）で `pyproject.toml` + `wrangler.jsonc` を用意し、
+フィクスチャ（最小構成の `pyproject.toml` + `wrangler.jsonc`）を別ディレクトリに用意し、
 各 exercise の `worker.py` を `main` に向けて起動・curl した。
 
 環境:
