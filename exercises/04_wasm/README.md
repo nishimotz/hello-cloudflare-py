@@ -98,6 +98,52 @@
 - トップレベルで作った値を返すエンドポイントと、`fetch` 内で作る値を
   返すエンドポイントを比べる
 
+## 実測記録（pywrangler dev 実行時の生データ）
+
+`uv run pywrangler dev` で実際に起動して検証済み。
+環境: `pywrangler 1.17.4` / `wrangler 4.143.0` / Pyodide 3.14.2 / CPython 3.14.2。
+本 exercise の `worker.py` (`GET /`) のレスポンス（実測）:
+
+```json
+{
+  "python_version": "3.14.2",
+  "implementation": "CPython",
+  "sys_platform": "emscripten",
+  "machine": "wasm32",
+  "is_emscripten": true,
+  "maxsize": 2147483647,
+  "in_memory_fs": "read_back='hello'"
+}
+```
+
+読み取れること:
+
+- `sys.platform == "emscripten"` — Pyodide（WASM）上で動いている証拠
+- `machine == "wasm32"` — WASM 32bit ターゲット
+- `maxsize == 2147483647` (= 2**31-1) — **ネイティブの 64bit ではなく WASM 32bit**。
+  通常の CPython では `9223372036854775807` (= 2**63-1)
+- `in_memory_fs` — `open()` で書いて読めた（isolate 生存中）
+
+`maxsize` が 32bit なのは重要な観察点。整数が WASM 線形メモリの
+アドレス空間に載るため、大きな値の扱いが native と変わる可能性がある。
+
+### ローカル開発時の実測ログ（pywrangler dev 起動時）
+
+```
+Using CPython 3.14.2+freethreaded
+Creating virtual environment at: .venv-workers
+Downloading pyodide-3.14.2-emscripten-wasm32-musl (download) (7.2MiB)
+...
+INFO     Resolving... / Installing packages into python_modules...
+INFO     Passing command to npx wrangler: npx --yes wrangler dev --port ...
+ ⛅️ wrangler 4.143.0
+```
+
+ドキュメントの「1. Pyodide のバージョン決定 → 2. パッケージ取得 →
+3. isolate 生成・Pyodide 注入 → 4. サーブ」が、実際のログに
+`Pyodide のダウンロード` → `python_modules へのインストール` → `wrangler dev`
+として現れる。
+
 ## 出典
 
 - <https://developers.cloudflare.com/workers/languages/python/how-python-workers-work/>

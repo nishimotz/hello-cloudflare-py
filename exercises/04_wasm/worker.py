@@ -8,10 +8,10 @@ Worker が動いている Pyodide/WASM 環境の情報を JSON で返す。
 （Exercise 04 の座学用デモは wasm_demo.py の方）。
 """
 
-from workers import Response, WorkerEntrypoint
-
 import platform
 import sys
+
+from workers import Response, WorkerEntrypoint
 
 
 class Default(WorkerEntrypoint):

@@ -97,6 +97,45 @@ curl http://localhost:8787/threading  # threading が機能しないことの確
 `threading` の確認では、スレッドを起動しても本当の並行にはならず、
 WASM VM の制約で期待した動きにならないことを観察する。
 
+## 実測記録（pywrangler dev 実行時の生データ）
+
+この exercise は `uv run pywrangler dev` で実際に起動して検証済み。
+環境: `pywrangler 1.17.4` / `wrangler 4.143.0` / Pyodide 3.14.2 / `sys.platform == "emscripten"` / `platform.machine() == "wasm32"`。
+
+### 公式ドキュメントと実測が食い違った点（重要）
+
+実測では、公式ドキュメントの区分と一致しない項目があった。
+**公式ドキュメントの更新が Pyodide 3.14 の実装に追いついていない可能性がある。**
+断定はしないが、実際に観察した事実だけ記録する。
+
+| モジュール | 公式 doc の区分 | 実測（find_spec） | 備考 |
+|---|---|---|---|
+| `fcntl` | 除外（import 不可） | **found** | 除外リストにあるが見つかる |
+| `termios` | 除外（import 不可） | **found** | 除外リストにあるが見つかる |
+| `pty` | import 不可（termios 依存） | **found** | termios が見つかるので連鎖も外れた可能性 |
+| `tty` | import 不可（termios 依存） | **found** | 同上 |
+| `curses` `dbm` `ensurepip` `grp` `idlelib` `lib2to3` `msvcrt` `pwd` `resource` `syslog` `tkinter` `turtle` `turtledemo` `venv` `winreg` `winsound` | 除外 | not_found | doc どおり |
+| `multiprocessing` `threading` | import 可・機能せず | found | doc どおり |
+
+**注意:** `find_spec` が found を返しても「機能する」とは限らない。
+import の成否と動作の可否は別。`fcntl`/`termios`/`pty`/`tty` が
+実際に使えるかは未検証（OS syscall 依存なので、使っても失敗する可能性が高い）。
+
+### インメモリ FS の実測
+
+- `GET /fs` → `{"ok": true, "read_back": "hello from exercise 05"}` — 書いて読めた
+- `GET /fs/count` を2回 → `count: 1` のあと `count: 2`
+
+**同じ isolate が使い回されている間はファイルが残ることを実測で確認した。**
+ただし isolate はいつ破棄されてもおかしくないので、増加を永続と誤解してはいけない。
+
+### threading の実測
+
+- `GET /threading` → `{"imported": true, "current_thread": "MainThread", "has_Thread": true}`
+
+import は成功し、`current_thread()` も名前を返す。ただし WASM VM の制約で
+本物の並行実行はできない（doc どおり）。**import できた≠並行できる。**
+
 ## 出典
 
 - <https://developers.cloudflare.com/workers/languages/python/stdlib/>

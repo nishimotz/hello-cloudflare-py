@@ -6,9 +6,6 @@ Cloudflare Workers を **Python で書く**ための日本語ハンズオン。
 コンパイルしたもの）で、コードは 100% Python。JS の Request / Response は
 FFI（foreign function interface）経由でそのまま触れる。
 
-> 状態: ローカル git リポジトリのみ。**remote は作っていない**（未公開）。
-> 設計・コードは公式ドキュメントに基づく。実行検証の可否は下の「検証状況」を参照。
-
 ## 動機
 
 Workers はこれまで JS/TS のものだった。Python Workers が入ったことで、
@@ -53,6 +50,16 @@ make dev-00   # 最小の Worker
 make dev-01   # POST + FFI
 make dev-02   # JSON + env
 make dev-03   # ルーティング + エラー
+make dev-04   # WASM / Pyodide（Worker 版）
+make dev-05   # 標準ライブラリの制約
+make dev-06   # パッケージ
+```
+
+CPython だけで動く座学デモ（pywrangler 不要）:
+
+```bash
+make demo-04  # WASM 環境の検出（この Mac の CPython で実行）
+make demo-06  # humanize / python-slugify の出力を見る
 ```
 
 静的検査:
@@ -83,8 +90,12 @@ uv run pywrangler deploy                # デプロイ
 |------|------|
 | `pywrangler` の入手・起動 (`uvx --from workers-py pywrangler --help`) | 確認済み（このマシン） |
 | Exercise 00〜06 の `src/*.py` の構文（`make check`） | 確認済み |
-| `uv run pywrangler dev` の実起動と `curl` 疎通 | 未検証（Node / ネットワーク条件による） |
+| `uv run pywrangler dev` の実起動と `curl` 疎通 | **確認済み（04〜06、担当B）**（pywrangler 1.17.4 / wrangler 4.143.0 / Pyodide 3.14.2） |
 | `uv run pywrangler deploy` | 未検証（remote を作らない方針のため） |
+
+**04〜06 の実測記録**は `VERIFICATION.md` に残す。公式ドキュメントの除外リストに
+ある `fcntl` / `termios` / `pty` / `tty` が `find_spec` で「見つかる」という
+食い違いも記録した（実使用は未検証。断定しない）。
 
 `workers` SDK は Workers runtime が提供する。ローカルの venv には入らないため、
 `make check` は **import ではなく構文だけ** を見る。

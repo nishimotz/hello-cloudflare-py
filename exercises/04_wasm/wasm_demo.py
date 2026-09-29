@@ -49,7 +49,16 @@ def detect_wasm_limits() -> dict[str, str]:
 
     # import すると副作用があるものがあるので、find_spec で「見つかるか」を見る。
     observations: dict[str, str] = {}
-    for name in ("curses", "fcntl", "tkinter", "venv", "multiprocessing", "threading", "pty", "tty"):
+    for name in (
+        "curses",
+        "fcntl",
+        "tkinter",
+        "venv",
+        "multiprocessing",
+        "threading",
+        "pty",
+        "tty",
+    ):
         try:
             spec = importlib.util.find_spec(name)
         except (ImportError, ModuleNotFoundError) as exc:

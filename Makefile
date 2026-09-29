@@ -14,9 +14,9 @@ ENTRIES := \
 EXTRA_PY := $(wildcard exercises/04_wasm/*.py exercises/05_stdlib/*.py exercises/06_packages/*.py)
 
 .PHONY: help sync check lint \
-	run-00 run-01 run-02 run-03 \
-	check-extra lint-extra \
-	dev-00 dev-01 dev-02 dev-03
+	run-00 run-01 run-02 run-03 run-04 run-06 \
+	demo-04 demo-06 \
+	dev-00 dev-01 dev-02 dev-03 dev-04 dev-05 dev-06
 
 help:
 	@printf '%s\n' \
@@ -27,10 +27,14 @@ help:
 		'make dev-01      - Exercise 01: start pywrangler dev (POST + FFI)' \
 		'make dev-02      - Exercise 02: start pywrangler dev (JSON + env)' \
 		'make dev-03      - Exercise 03: start pywrangler dev (routing + errors)' \
+		'make dev-04      - Exercise 04: start pywrangler dev (WASM / Pyodide)' \
+		'make dev-05      - Exercise 05: start pywrangler dev (stdlib constraints)' \
+		'make dev-06      - Exercise 06: start pywrangler dev (packages)' \
+		'make demo-04     - Exercise 04: CPython stand-alone demo (no pywrangler)' \
+		'make demo-06     - Exercise 06: CPython stand-alone demo (no pywrangler)' \
 		'' \
 		'Note: Worker は `uv run pywrangler dev` でローカル起動する。' \
-		'      CPython では実行できない（workers SDK は runtime 提供）。' \
-		'      Exercise 04-06 の *.py は存在すれば構文検査の対象になる。'
+		'      CPython では実行できない（workers SDK は runtime 提供）。'
 
 sync:
 	$(UV) sync
@@ -41,6 +45,13 @@ check:
 
 lint:
 	$(UV) run ruff check .
+
+# --- CPython だけで動く座学デモ（pywrangler 不要） ---
+demo-04:
+	$(PYTHON) exercises/04_wasm/wasm_demo.py
+
+demo-06:
+	$(UV) run python exercises/06_packages/packages_demo.py
 
 # --- ローカル開発サーバ（要 Node、pywrangler が sync → wrangler へ委譲） ---
 # 既定ポートは wrangler が選ぶ（通常 http://localhost:8787）。
@@ -57,3 +68,12 @@ dev-02:
 
 dev-03:
 	cd exercises/03_routing && $(UV) run pywrangler dev
+
+dev-04:
+	cd exercises/04_wasm && $(UV) run pywrangler dev
+
+dev-05:
+	cd exercises/05_stdlib && $(UV) run pywrangler dev
+
+dev-06:
+	cd exercises/06_packages && $(UV) run pywrangler dev

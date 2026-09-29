@@ -103,6 +103,38 @@ curl http://localhost:8787/
 - **バンドルサイズはコールドスタートに効く。** スナップショットに焼かれるので、
   重い依存は初期化コストに跳ねる。Exercise 04 の話とつながる。
 
+## 実測記録（pywrangler dev + 実パッケージ）
+
+この exercise は `uv run pywrangler dev` で実際に起動して検証済み。
+環境: `pywrangler 1.17.4` / `wrangler 4.143.0` / Pyodide 3.14.2。
+`pyproject.toml` に `humanize>=4` と `python-slugify>=8` を含め、
+`uv lock` → `pywrangler dev` → `curl` で確認した。
+
+本 exercise の `worker.py` (`GET /`) のレスポンス（実測）:
+
+```json
+{
+  "intcomma": {"1234567": "1,234,567", "1000000000": "1,000,000,000"},
+  "naturalsize": {"1234567": "1.2 MB", "1000000000": "1.0 GB"},
+  "slugify": {"Hello, Cloudflare Workers!": "hello-cloudflare-workers"}
+}
+```
+
+**pure Python パッケージ（humanize, python-slugify）は Worker 上で問題なく動いた。**
+`uv lock` が `pylock.toml` を作り、`pywrangler` が `python_modules` と
+`.venv-workers` にインストールしてバンドルする流れもログで確認できた。
+
+### ローカル CPython での確認
+
+同じパッケージを普通の CPython でも動かせる（`packages_demo.py`）。
+ローカルと Worker で同じ出力になることを確認済み:
+
+```
+1,234,567  intcomma='1,234,567'  naturalsize='1.2 MB'
+1,000,000,000  intcomma='1,000,000,000'  naturalsize='1.0 GB'
+'Hello, Cloudflare Workers!' -> 'hello-cloudflare-workers'
+```
+
 ## 出典
 
 - <https://developers.cloudflare.com/workers/languages/python/packages/>

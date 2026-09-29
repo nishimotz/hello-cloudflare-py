@@ -11,10 +11,9 @@
 `workers` が無いので実行できない（座学は README.md を読む）。
 """
 
-from workers import Response, WorkerEntrypoint
-
 import importlib.util
 
+from workers import Response, WorkerEntrypoint
 
 EXCLUDED = (
     "curses", "dbm", "ensurepip", "fcntl", "grp", "idlelib", "lib2to3",
@@ -34,6 +33,15 @@ def _probe(name: str) -> str:
     except (ImportError, ModuleNotFoundError) as exc:
         return f"error:{type(exc).__name__}"
     return "found" if spec else "not_found"
+
+
+def _try_import(name: str) -> str:
+    """実際に import してみる。find_spec の found が「使える」を意味するかを見る。"""
+    try:
+        importlib.import_module(name)
+    except BaseException as exc:  # noqa: BLE001 - import 時の例外は種類が広い
+        return f"import_error:{type(exc).__name__}"
+    return "imported"
 
 
 class Default(WorkerEntrypoint):
@@ -57,6 +65,8 @@ class Default(WorkerEntrypoint):
             return self._fs_counter()
         if path == "/threading":
             return self._threading_probe()
+        if path == "/import":
+            return self._import_probe()
         return self._stdlib_report()
 
     def _stdlib_report(self):
@@ -111,6 +121,35 @@ class Default(WorkerEntrypoint):
                 "note": (
                     "同じ isolate が使い回されれば増えるが、"
                     "isolate はいつ破棄されてもおかしくない。増加を永続と誤解しない。"
+                ),
+            }
+        )
+
+    def _import_probe(self):
+        """find_spec で found だったモジュールが、実際に import できるかを見る。
+
+        公式ドキュメントは fcntl / termios を「除外（import 不可）」、
+        pty / tty を「import 不可」としている。find_spec では found に
+        なるが、それは import 成功を保証しない。ここで実際に試す。
+        """
+        targets = [
+            "fcntl",
+            "termios",
+            "pty",
+            "tty",
+            "grp",
+            "pwd",
+            "resource",
+            "syslog",
+            "curses",
+        ]
+        return Response.json(
+            {
+                "find_spec": {n: _probe(n) for n in targets},
+                "import": {n: _try_import(n) for n in targets},
+                "note": (
+                    "find_spec=found でも import が失敗すれば、公式 doc の"
+                    "『import 不可』が正しい。import=error:ImportError が決着の証拠。"
                 ),
             }
         )

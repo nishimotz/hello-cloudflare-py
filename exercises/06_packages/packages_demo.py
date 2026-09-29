@@ -31,7 +31,9 @@ def main() -> None:
     numbers = [1_234_567, 10**9, 1_500_000_000]
     print("[1] humanize")
     for n in numbers:
-        print(f"    {n:>12,}  intcomma={intcomma(n)!r:>12}  naturalsize={naturalsize(n)!r}")
+        comma = intcomma(n)
+        size = naturalsize(n)
+        print(f"    {n:>12,}  intcomma={comma!r:>12}  naturalsize={size!r}")
 
     print()
     print("[2] python-slugify")
