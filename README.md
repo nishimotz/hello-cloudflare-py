@@ -54,6 +54,7 @@ make dev-03   # ルーティング + エラー
 make dev-04   # WASM / Pyodide（Worker 版）
 make dev-05   # 標準ライブラリの制約
 make dev-06   # パッケージ
+make dev-07   # Flask + Jinja2 (WSGI)
 ```
 
 CPython だけで動く座学デモ（pywrangler 不要）:
@@ -253,9 +254,11 @@ wrangler の `delete` は設定ファイルから名前を解決するが、`cf 
 | `pywrangler` の入手・起動 (`uvx --from workers-py pywrangler --help`) | 確認済み（このマシン） |
 | Exercise 00〜06 の `src/*.py` の構文（`make check`） | 確認済み |
 | `uv run pywrangler dev` の実起動と `curl` 疎通 | **確認済み（04〜06、担当B）**（pywrangler 1.17.4 / wrangler 4.143.0 / Pyodide 3.14.2） |
+| Exercise 07 の `pywrangler dev` と `curl` 疎通（8項目） | **確認済み**（Flask 3.1.3 / Jinja2 3.1.6 / wrangler 4.143.0） |
 | `uv run pywrangler deploy` | 未検証（remote を作らない方針のため） |
 
-**04〜06 の実測記録**は `VERIFICATION.md` に残す。公式ドキュメントの除外リストに
+**04〜06 の実測記録**は `VERIFICATION.md` に残す。**07 の実測は
+`exercises/07_flask_wsgi/README.md` に残す**（8項目の応答を記録）。公式ドキュメントの除外リストに
 ある `fcntl` / `termios` / `pty` / `tty` が `find_spec` で「見つかる」という
 食い違いも記録した（実使用は未検証。断定しない）。
 
